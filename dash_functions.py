@@ -30,3 +30,9 @@ def show_uploader(choice):
         st.write("Please choose a valid option (1-4).")
     
     return uploaded_file
+
+def encrypt():
+    st.text_input("Enter your encryption key")
+
+def decrypt():
+    st.text_input("Enter your decryption key")

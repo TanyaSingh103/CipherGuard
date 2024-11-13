@@ -58,6 +58,12 @@ if nav_option == "Home":
     if(choice):
         uploaded_file = fns.show_uploader(int(choice))
 
+        st.write('Do you want to encrypt or decrypt?')
+        if st.button("Encrypt"):
+            fns.encrypt()
+        elif st.button("Decrypt"):
+            fns.decrypt()
+
 elif nav_option == "About":
     st.title("About Us")
     st.write("Information about the application or organization.")
