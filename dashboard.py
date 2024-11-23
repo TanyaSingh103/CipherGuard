@@ -1,6 +1,7 @@
 import streamlit as st
 import dash_functions as fns
 
+# Navigation Bar Styling
 st.markdown(
     """
     <style>
@@ -43,6 +44,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Navigation Options
 nav_option = st.radio("", ["Home", "About", "Services", "Contact"], index=0, horizontal=True, label_visibility="collapsed")
 
 if nav_option == "Home":
@@ -55,21 +57,21 @@ if nav_option == "Home":
         uploaded_file = fns.show_uploader(int(choice))  # File uploader based on type
 
         if uploaded_file:
-            algorithm = st.selectbox("Choose an encryption algorithm", ["AES", "DES", "RSA"])
+            algorithm = st.selectbox("Choose an encryption algorithm", ["AES", "DES", "3DES", "Blowfish"])
             operation = st.radio("Choose an operation:", ["Encrypt", "Decrypt"], horizontal=True)
-            key = st.text_input("Enter your key (AES: 16/24/32 chars)")
+            key = st.text_input("Enter your key (AES: 16/24/32 chars, DES: 8 chars, 3DES: 24 chars, Blowfish: 16 chars)")
 
             if key and st.button("Submit"):
                 if operation == "Encrypt":
-                    encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, int(choice))
+                    encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, uploaded_file.name.split('.')[-1])
                     if encrypted_file:
                         st.success("File encrypted successfully!")
-                        st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file")
+                        st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file.enc")
                 elif operation == "Decrypt":
-                    decrypted_file = fns.decrypt_file(uploaded_file, algorithm, key, int(choice))
+                    decrypted_file = fns.decrypt_file(uploaded_file, algorithm, key)
                     if decrypted_file:
                         st.success("File decrypted successfully!")
-                        st.download_button("Download Decrypted File", decrypted_file.getvalue(), "decrypted_file")
+                        st.download_button("Download Decrypted File", decrypted_file.getvalue(), decrypted_file.name)
 
 elif nav_option == "About":
     st.title("About Us")
