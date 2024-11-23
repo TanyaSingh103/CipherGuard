@@ -1,89 +1,69 @@
 import streamlit as st
-import base64
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
-from PyPDF2 import PdfReader, PdfWriter
-import docx
+from cryptography.hazmat.primitives.padding import PKCS7
+from io import BytesIO
 import os
 
-# File uploader
 def show_uploader(choice):
     uploaded_file = None
     if choice == 1:
-        uploaded_file = st.file_uploader("Choose your .csv file", type="csv")
+        uploaded_file = st.file_uploader("Choose your CSV file", type="csv")
     elif choice == 2:
-        uploaded_file = st.file_uploader("Choose your .docx file", type="docx")
+        uploaded_file = st.file_uploader("Choose your DOC file", type="doc")
     elif choice == 3:
-        uploaded_file = st.file_uploader("Choose your .pdf file", type="pdf")
+        uploaded_file = st.file_uploader("Choose your PDF file", type="pdf")
     elif choice == 4:
-        uploaded_file = st.file_uploader("Choose your .jpg file", type="jpg")
+        uploaded_file = st.file_uploader("Choose your JPG file", type="jpg")
     else:
-        st.write("Invalid choice.")
+        st.write("Please choose a valid option (1-4).")
     return uploaded_file
 
-# Encryption
-def encrypt_file(file, algorithm, file_type):
-    key = b"encryptionkey12"  # 16-byte key for AES/3DES/Blowfish
+def pad_key(key: bytes, length: int) -> bytes:
+    """Pad the key to make it the required length for AES."""
+    while len(key) < length:
+        key += b"0"  # Add padding
+    return key[:length]
+
+def encrypt_file(file, algorithm, key, file_type):
+    """Encrypt the uploaded file."""
     backend = default_backend()
     iv = os.urandom(16)
+    key = pad_key(key.encode(), 32)  # AES requires key size of 16, 24, or 32 bytes
 
-    # Select algorithm
     if algorithm == "AES":
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-    elif algorithm == "Blowfish":
-        cipher = Cipher(algorithms.Blowfish(key), modes.CBC(iv), backend=backend)
-    elif algorithm == "3DES":
-        cipher = Cipher(algorithms.TripleDES(key), modes.CBC(iv), backend=backend)
     else:
-        st.error("Unsupported algorithm for encryption.")
-        return
+        st.error(f"{algorithm} is not supported yet.")
+        return None
 
     encryptor = cipher.encryptor()
-    padded_data = pad_data(file.read())
+    padder = PKCS7(128).padder()
+    padded_data = padder.update(file.read()) + padder.finalize()
     encrypted_data = encryptor.update(padded_data) + encryptor.finalize()
 
-    return save_temp_file(encrypted_data, file_type)
+    output_file = BytesIO(encrypted_data + iv)  # Append IV for decryption
+    return output_file
 
-# Decryption
-def decrypt_file(file, algorithm, file_type):
-    key = b"encryptionkey12"
+def decrypt_file(file, algorithm, key, file_type):
+    """Decrypt the uploaded file."""
     backend = default_backend()
-    iv = os.urandom(16)
+    content = file.read()
+    key = pad_key(key.encode(), 32)  # AES requires key size of 16, 24, or 32 bytes
+
+    iv = content[-16:]  # Extract the last 16 bytes as the IV
+    encrypted_data = content[:-16]
 
     if algorithm == "AES":
         cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
-    elif algorithm == "Blowfish":
-        cipher = Cipher(algorithms.Blowfish(key), modes.CBC(iv), backend=backend)
-    elif algorithm == "3DES":
-        cipher = Cipher(algorithms.TripleDES(key), modes.CBC(iv), backend=backend)
     else:
-        st.error("Unsupported algorithm for decryption.")
-        return
+        st.error(f"{algorithm} is not supported yet.")
+        return None
 
     decryptor = cipher.decryptor()
-    encrypted_data = file.read()
-    decrypted_data = decryptor.update(encrypted_data) + decryptor.finalize()
+    unpadder = PKCS7(128).unpadder()
+    decrypted_padded_data = decryptor.update(encrypted_data) + decryptor.finalize()
+    decrypted_data = unpadder.update(decrypted_padded_data) + unpadder.finalize()
 
-    return save_temp_file(decrypted_data, file_type)
-
-# Padding helper
-def pad_data(data):
-    padder = padding.PKCS7(algorithms.AES.block_size).padder()
-    return padder.update(data) + padder.finalize()
-
-# Save file to temp
-def save_temp_file(data, file_type):
-    extension = {1: "csv", 2: "docx", 3: "pdf", 4: "jpg"}[file_type]
-    temp_file = f"temp.{extension}"
-    with open(temp_file, "wb") as f:
-        f.write(data)
-    return temp_file
-
-# File download link
-def download_file(file_path, action):
-    with open(file_path, "rb") as f:
-        data = f.read()
-    b64 = base64.b64encode(data).decode()
-    href = f'<a href="data:file/octet-stream;base64,{b64}" download="{action}_{os.path.basename(file_path)}">Download {action.title()} File</a>'
-    st.markdown(href, unsafe_allow_html=True)
+    output_file = BytesIO(decrypted_data)
+    return output_file
