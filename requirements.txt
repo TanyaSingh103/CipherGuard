@@ -1,0 +1,6 @@
+streamlit
+pycryptodome
+pypdf2
+Pillow
+python-docx
+pandas
