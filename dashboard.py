@@ -145,6 +145,7 @@ elif nav_option == "Contact":
     st.title("Contact Us")
     st.write("**For inquiries, reach out to us at:**")
     st.markdown("[kavyabhatia198@gmail.com](mailto:kavyabhatia198@gmail.com)")
+    st.markdown("[surbhidkumar@gmail.com](mailto:surbhidkumar@gmail.com)")
     st.markdown("[tanya.103.singh@gmail.com](mailto:tanya.103.singh@gmail.com)")
 
 
