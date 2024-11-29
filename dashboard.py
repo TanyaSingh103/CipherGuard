@@ -1,7 +1,7 @@
 import streamlit as st
 import dash_functions as fns
 
-# Navigation Bar Styling
+# Custom Navbar Styling
 st.markdown(
     """
     <style>
@@ -30,14 +30,29 @@ st.markdown(
         color: white;
     }
     .content {
-        padding-top: 60px;  /* Offset for the fixed navbar */
+        padding-top: 70px;  /* Offset for the fixed navbar */
+    }
+    footer {
+        text-align: center;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        background: #333;
+        color: white;
+        padding: 10px 0;
+    }
+    footer a {
+        color: #04AA6D;
+        text-decoration: none;
+    }
+    footer a:hover {
+        text-decoration: underline;
     }
     </style>
     <div class="topnav">
-      <a href="#home" class="active">Home</a>
-      <a href="#about">About</a>
-      <a href="#services">Services</a>
-      <a href="#contact">Contact</a>
+        <a href="#home" class="active">Home</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
     </div>
     <div class="content">
     """,
@@ -45,44 +60,69 @@ st.markdown(
 )
 
 # Navigation Options
-nav_option = st.radio("", ["Home", "About", "Services", "Contact"], index=0, horizontal=True, label_visibility="collapsed")
+nav_option = st.radio("", ["Home", "About", "Contact"], index=0, horizontal=True, label_visibility="collapsed")
 
 if nav_option == "Home":
-    st.title('CipherGuard')
-    st.write('Encrypt and decrypt files using an encryption algorithm of your choice.')
-    st.write('Supported file types:\n1. CSV \n2. DOC \n3. PDF \n4. JPG')
-    choice = st.text_input('Enter file type to upload (1-4): ')
+    st.title('CipherGuard: Secure Your Files')
+    st.subheader('Encrypt and decrypt files effortlessly.')
+    st.markdown("**Supported file types:** CSV, DOC, PDF, JPG")
 
-    if choice:
-        uploaded_file = fns.show_uploader(int(choice))  # File uploader based on type
+    # Dropdown for File Type
+    file_type = st.selectbox("Select File Type to Upload:", ["CSV", "DOC", "PDF", "JPG"])
 
-        if uploaded_file:
-            algorithm = st.selectbox("Choose an encryption algorithm", ["AES", "DES", "3DES", "Blowfish"])
-            operation = st.radio("Choose an operation:", ["Encrypt", "Decrypt"], horizontal=True)
-            key = st.text_input("Enter your key (AES: 16/24/32 chars, DES: 8 chars, 3DES: 24 chars, Blowfish: 16 chars)")
+    # File Upload Component
+    uploaded_file = st.file_uploader(f"Upload your {file_type} file:", type=file_type.lower())
 
-            if key and st.button("Submit"):
+    # Algorithm Selection
+    if uploaded_file:
+        st.write("**File Uploaded Successfully!**")
+        algorithm = st.selectbox("Choose Encryption Algorithm:", ["AES", "DES", "3DES", "Blowfish"])
+        operation = st.radio("Select Operation:", ["Encrypt", "Decrypt"], horizontal=True)
+
+        # Key Input
+        key = st.text_input(
+            "Enter your encryption key:",
+            help="AES: 16/24/32 chars, DES: 8 chars, 3DES: 24 chars, Blowfish: 16 chars",
+        )
+
+        if key and st.button("Submit"):
+            if len(key) not in [8, 16, 24, 32]:
+                st.error("Invalid key length! Please check the key requirements.")
+            else:
                 if operation == "Encrypt":
                     encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, uploaded_file.name.split('.')[-1])
                     if encrypted_file:
-                        st.success("File encrypted successfully!")
+                        st.success("File encrypted successfully! 🎉")
                         st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file.enc")
                 elif operation == "Decrypt":
                     decrypted_file = fns.decrypt_file(uploaded_file, algorithm, key)
                     if decrypted_file:
-                        st.success("File decrypted successfully!")
+                        st.success("File decrypted successfully! 🎉")
                         st.download_button("Download Decrypted File", decrypted_file.getvalue(), decrypted_file.name)
 
 elif nav_option == "About":
-    st.title("About Us")
-    st.write("CipherGuard is a secure file encryption and decryption tool.")
+    st.title("About CipherGuard")
+    st.markdown(
+        """
+        CipherGuard is a secure file encryption and decryption tool that simplifies the process for users of all skill levels.
 
-elif nav_option == "Services":
-    st.title("Our Services")
-    st.write("Secure encryption and decryption for various file types.")
+        ### Features:
+        - **File Support**: CSV, DOC, PDF, JPG
+        - **Algorithms**: AES, DES, 3DES, Blowfish
+        - **Ease of Use**: Simple upload and download interface.
+
+        ### How It Works:  
+        1. Upload your file.  
+        2. Choose an encryption algorithm and operation.  
+        3. Provide the key to encrypt or decrypt.  
+        """
+    )
 
 elif nav_option == "Contact":
     st.title("Contact Us")
-    st.write("Email: contact@cipherguard.com")
+    st.write("**For inquiries, reach out to us at:**")
+    st.markdown("[kavyabhatia198@gmail.com](mailto:kavyabhatia198@gmail.com)")
+    st.markdown("[tanya.103.singh@gmail.com](mailto:tanya.103.singh@gmail.com)")
+
 
 st.markdown("</div>", unsafe_allow_html=True)

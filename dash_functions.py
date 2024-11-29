@@ -21,13 +21,13 @@ def show_uploader(choice):
 def pad_key(key: bytes, length: int) -> bytes:
     """Pad the key to make it the required length for specific algorithms."""
     while len(key) < length:
-        key += b"0"  # Add padding
+        key += b"0" 
     return key[:length]
 
 def encrypt_file(file, algorithm, key, file_type):
     """Encrypt the uploaded file."""
     content = file.read()
-    iv = os.urandom(8 if algorithm in ["DES", "Blowfish"] else 16)  # IV size depends on the algorithm
+    iv = os.urandom(8 if algorithm in ["DES", "Blowfish"] else 16)  
     encrypted_data = None
 
     if algorithm == "AES":
@@ -46,7 +46,6 @@ def encrypt_file(file, algorithm, key, file_type):
         st.error(f"{algorithm} is not supported.")
         return None
 
-    # Combine encrypted data with the IV and file type metadata
     output = BytesIO()
     output.write(file_type.encode() + b":" + iv + encrypted_data)
     output.seek(0)
@@ -76,7 +75,6 @@ def decrypt_file(file, algorithm, key):
         st.error(f"{algorithm} is not supported.")
         return None
 
-    # Output the decrypted file with its original type
     output = BytesIO(decrypted_data)
     output.name = file_type.decode()
     output.seek(0)
