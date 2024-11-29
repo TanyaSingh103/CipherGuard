@@ -98,7 +98,8 @@ if nav_option == "Home":
         key = st.text_input(
             "Enter your encryption key:",
             placeholder="",
-            help="Ensure the key length matches the selected algorithm's requirements.",
+            type="password",  
+            help="Ensure the key length matches the selected algorithm's requirements."
         )
 
         # Key Validation and Submission
@@ -147,6 +148,5 @@ elif nav_option == "Contact":
     st.markdown("[kavyabhatia198@gmail.com](mailto:kavyabhatia198@gmail.com)")
     st.markdown("[surbhidkumar@gmail.com](mailto:surbhidkumar@gmail.com)")
     st.markdown("[tanya.103.singh@gmail.com](mailto:tanya.103.singh@gmail.com)")
-
 
 st.markdown("</div>", unsafe_allow_html=True)
