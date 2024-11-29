@@ -60,7 +60,13 @@ st.markdown(
 )
 
 # Navigation Options
-nav_option = st.radio("", ["Home", "About", "Contact"], index=0, horizontal=True, label_visibility="collapsed")
+nav_option = st.radio(
+    "Navigation options (hidden):",
+    ["Home", "About", "Contact"],
+    index=0,
+    horizontal=True,
+    label_visibility="collapsed"
+)
 
 if nav_option == "Home":
     st.title('CipherGuard: Secure Your Files')
@@ -80,24 +86,41 @@ if nav_option == "Home":
         operation = st.radio("Select Operation:", ["Encrypt", "Decrypt"], horizontal=True)
 
         # Key Input
+        st.markdown(
+            """
+            ### Encryption Key Requirements:
+            - **AES**: Key length must be 16, 24, or 32 characters.
+            - **DES**: Key length must be exactly 8 characters.
+            - **3DES**: Key length must be 24 characters.
+            - **Blowfish**: Key length must be 16 characters.
+            """
+        )
         key = st.text_input(
             "Enter your encryption key:",
-            help="AES: 16/24/32 chars, DES: 8 chars, 3DES: 24 chars, Blowfish: 16 chars",
+            placeholder="",
+            help="Ensure the key length matches the selected algorithm's requirements.",
         )
 
+        # Key Validation and Submission
         if key and st.button("Submit"):
-            if len(key) not in [8, 16, 24, 32]:
-                st.error("Invalid key length! Please check the key requirements.")
+            valid_lengths = {
+                "AES": [16, 24, 32],
+                "DES": [8],
+                "3DES": [24],
+                "Blowfish": [16],
+            }
+            if len(key) not in valid_lengths[algorithm]:
+                st.error(f"Invalid key length for {algorithm}! Required: {', '.join(map(str, valid_lengths[algorithm]))} characters.")
             else:
                 if operation == "Encrypt":
                     encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, uploaded_file.name.split('.')[-1])
                     if encrypted_file:
-                        st.success("File encrypted successfully! 🎉")
+                        st.success("File encrypted successfully")
                         st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file.enc")
                 elif operation == "Decrypt":
                     decrypted_file = fns.decrypt_file(uploaded_file, algorithm, key)
                     if decrypted_file:
-                        st.success("File decrypted successfully! 🎉")
+                        st.success("File decrypted successfully")
                         st.download_button("Download Decrypted File", decrypted_file.getvalue(), decrypted_file.name)
 
 elif nav_option == "About":
