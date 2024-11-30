@@ -1,6 +1,8 @@
 import streamlit as st
 import dash_functions as fns
 from io import BytesIO
+from PIL import Image
+import pandas as pd
 
 # Custom Navbar Styling
 st.markdown(
@@ -74,16 +76,31 @@ if nav_option == "Home":
     st.subheader('Encrypt and decrypt files effortlessly.')
     st.markdown("**Supported file types:** CSV, DOC, PDF, JPG")
 
-    # File Type Selection
     file_type = st.radio("Select File Type to Upload:", ["CSV", "DOC", "PDF", "JPG"])
 
-    # File Uploader (only allows the selected file type)
     st.subheader("Upload Your File")
-    uploaded_file = fns.show_uploader([file_type.lower()])  # Show uploader based on the selected file type
+    uploaded_file = fns.show_uploader([file_type.lower()])
 
     if uploaded_file:
-        # After the file is uploaded, show the encryption options
         st.success("File uploaded successfully!")
+
+        # display file preview
+        if file_type.lower() in ["jpg", "jpeg", "png"]:
+            image = Image.open(uploaded_file)
+            st.image(image, caption="Uploaded Image", use_container_width=True) 
+
+        elif file_type.lower() == "pdf":
+            st.write("PDF file preview:")
+            st.download_button("Download PDF", uploaded_file)
+
+        elif file_type.lower() == "csv":
+            df = pd.read_csv(uploaded_file)
+            st.write("CSV file preview:")
+            st.dataframe(df.head())  
+
+        else:
+            st.write("File preview is not available for this type.")
+
         operation = st.radio("Select Operation:", ["Encrypt", "Decrypt"], index=0)
 
         if operation == "Encrypt":
