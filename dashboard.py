@@ -1,5 +1,6 @@
 import streamlit as st
 import dash_functions as fns
+from io import BytesIO
 
 # Custom Navbar Styling
 st.markdown(
@@ -73,56 +74,58 @@ if nav_option == "Home":
     st.subheader('Encrypt and decrypt files effortlessly.')
     st.markdown("**Supported file types:** CSV, DOC, PDF, JPG")
 
-    # Dropdown for File Type
-    file_type = st.selectbox("Select File Type to Upload:", ["CSV", "DOC", "PDF", "JPG"])
+    # File Type Selection
+    file_type = st.radio("Select File Type to Upload:", ["CSV", "DOC", "PDF", "JPG"])
 
-    # File Upload Component
-    uploaded_file = st.file_uploader(f"Upload your {file_type} file:", type=file_type.lower())
+    # File Uploader (only allows the selected file type)
+    st.subheader("Upload Your File")
+    uploaded_file = fns.show_uploader([file_type.lower()])  # Show uploader based on the selected file type
 
-    # Algorithm Selection
     if uploaded_file:
-        st.write("**File Uploaded Successfully!**")
-        algorithm = st.selectbox("Choose Encryption Algorithm:", ["AES", "DES", "3DES", "Blowfish"])
-        operation = st.radio("Select Operation:", ["Encrypt", "Decrypt"], horizontal=True)
+        # After the file is uploaded, show the encryption options
+        st.success("File uploaded successfully!")
+        operation = st.radio("Select Operation:", ["Encrypt", "Decrypt"], index=0)
 
-        # Key Input
-        st.markdown(
-            """
-            ### Encryption Key Requirements:
-            - **AES**: Key length must be 16, 24, or 32 characters.
-            - **DES**: Key length must be exactly 8 characters.
-            - **3DES**: Key length must be 24 characters.
-            - **Blowfish**: Key length must be 16 characters.
-            """
-        )
-        key = st.text_input(
-            "Enter your encryption key:",
-            placeholder="",
-            type="password",  
-            help="Ensure the key length matches the selected algorithm's requirements."
-        )
+        if operation == "Encrypt":
+            st.markdown(
+                """
+                ### Encryption Key Requirements:
+                - **AES**: Key length must be 16, 24, or 32 characters.
+                - **DES**: Key length must be exactly 8 characters.
+                - **3DES**: Key length must be 24 characters.
+                - **Blowfish**: Key length must be 16 characters.
+                """
+            )
+            algorithm = st.selectbox("Choose Encryption Algorithm:", ["AES", "DES", "3DES", "Blowfish"])
+            key = st.text_input("Enter encryption key (password):", type="password")
 
-        # Key Validation and Submission
-        if key and st.button("Submit"):
-            valid_lengths = {
-                "AES": [16, 24, 32],
-                "DES": [8],
-                "3DES": [24],
-                "Blowfish": [16],
-            }
-            if len(key) not in valid_lengths[algorithm]:
-                st.error(f"Invalid key length for {algorithm}! Required: {', '.join(map(str, valid_lengths[algorithm]))} characters.")
-            else:
-                if operation == "Encrypt":
-                    encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, uploaded_file.name.split('.')[-1])
-                    if encrypted_file:
-                        st.success("File encrypted successfully")
-                        st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file.enc")
-                elif operation == "Decrypt":
-                    decrypted_file = fns.decrypt_file(uploaded_file, algorithm, key)
-                    if decrypted_file:
-                        st.success("File decrypted successfully")
-                        st.download_button("Download Decrypted File", decrypted_file.getvalue(), decrypted_file.name)
+            if key and st.button("Encrypt"):
+                encrypted_file = fns.encrypt_file(uploaded_file, algorithm, key, file_type)
+                if encrypted_file:
+                    st.success("File encrypted successfully!")
+                    st.download_button("Download Encrypted File", encrypted_file.getvalue(), "encrypted_file.enc")
+
+        elif operation == "Decrypt":
+            st.markdown(
+                """
+                ### Decryption Key Requirements:
+                - Ensure the key matches the encryption algorithm's requirements.
+                """
+            )
+            # Decrypt section only appears if user has uploaded an encrypted file (with .enc extension)
+            uploaded_enc_file = fns.show_uploader(["enc"])  # Allow only .enc files
+
+            if uploaded_enc_file:
+                algorithm = st.selectbox("Choose Decryption Algorithm:", ["AES", "DES", "3DES", "Blowfish"])
+                key = st.text_input("Enter decryption key (password):", type="password")
+
+                if key and st.button("Decrypt"):
+                    decrypted_file_type, decrypted_content = fns.decrypt_file(uploaded_enc_file, algorithm, key)
+                    if decrypted_content:
+                        st.success("File decrypted successfully!")
+                        decrypted_file = BytesIO(decrypted_content)
+                        decrypted_file.name = f"decrypted_file.{decrypted_file_type.lower()}"
+                        st.download_button(f"Download Decrypted {decrypted_file_type} File", decrypted_file.getvalue(), decrypted_file.name)
 
 elif nav_option == "About":
     st.title("About CipherGuard")
