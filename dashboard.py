@@ -139,7 +139,7 @@ if nav_option == "Home":
                 if key and st.button("Decrypt"):
                     decrypted_file_type, decrypted_content = fns.decrypt_file(uploaded_enc_file, algorithm, key)
                     if decrypted_content:
-                        st.success("File decrypted successfully!")
+                        #st.success("File decrypted successfully!")
                         decrypted_file = BytesIO(decrypted_content)
                         decrypted_file.name = f"decrypted_file.{decrypted_file_type.lower()}"
                         st.download_button(f"Download Decrypted {decrypted_file_type} File", decrypted_file.getvalue(), decrypted_file.name)
