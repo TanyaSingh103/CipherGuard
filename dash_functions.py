@@ -16,33 +16,39 @@ def pad_key(key: bytes, length: int) -> bytes:
         key += b"0"
     return key[:length]
 
+
 def encrypt_file(file, algorithm, key, file_type):
     """Encrypt the uploaded file."""
     content = file.read()
-    iv = os.urandom(16 if algorithm == "AES" else 8)  # AES uses 16-byte IV
+    iv = os.urandom(16 if algorithm == "AES" else 8)  # AES uses 16-byte IV, others use 8-byte
     encrypted_data = None
 
-    if algorithm == "AES":
-        cipher = AES.new(pad_key(key.encode(), 32), AES.MODE_CBC, iv)
-        encrypted_data = cipher.encrypt(pad(content, AES.block_size))
-    elif algorithm == "DES":
-        cipher = DES.new(pad_key(key.encode(), 8), DES.MODE_CBC, iv)
-        encrypted_data = cipher.encrypt(pad(content, DES.block_size))
-    elif algorithm == "3DES":
-        cipher = DES3.new(pad_key(key.encode(), 24), DES3.MODE_CBC, iv)
-        encrypted_data = cipher.encrypt(pad(content, DES3.block_size))
-    elif algorithm == "Blowfish":
-        cipher = Blowfish.new(pad_key(key.encode(), 16), Blowfish.MODE_CBC, iv)
-        encrypted_data = cipher.encrypt(pad(content, Blowfish.block_size))
-    else:
-        st.error(f"{algorithm} is not supported.")
+    try:
+        if algorithm == "AES":
+            cipher = AES.new(pad_key(key.encode(), 32), AES.MODE_CBC, iv)
+            encrypted_data = cipher.encrypt(pad(content, AES.block_size))
+        elif algorithm == "DES":
+            cipher = DES.new(pad_key(key.encode(), 8), AES.MODE_CBC, iv)
+            encrypted_data = cipher.encrypt(pad(content, DES.block_size))
+        elif algorithm == "3DES":
+            cipher = DES3.new(pad_key(key.encode(), 24), DES3.MODE_CBC, iv)
+            encrypted_data = cipher.encrypt(pad(content, DES3.block_size))
+        elif algorithm == "Blowfish":
+            cipher = Blowfish.new(pad_key(key.encode(), 16), Blowfish.MODE_CBC, iv)
+            encrypted_data = cipher.encrypt(pad(content, Blowfish.block_size))
+        else:
+            st.error(f"{algorithm} is not supported.")
+            return None
+
+        output = BytesIO()
+        # Save the file_type, IV length, IV, and encrypted data
+        output.write(file_type.encode() + b":" + len(iv).to_bytes(4, 'big') + iv + encrypted_data)
+        output.seek(0)
+        return output
+    except Exception as e:
+        st.error(f"Encryption failed: {e}")
         return None
 
-    output = BytesIO()
-    # Save the file_type, IV length, IV, and encrypted data
-    output.write(file_type.encode() + b":" + len(iv).to_bytes(4, 'big') + iv + encrypted_data)
-    output.seek(0)
-    return output
 
 def decrypt_file(file, algorithm, key):
     """Decrypt the uploaded encrypted file."""
@@ -68,10 +74,10 @@ def decrypt_file(file, algorithm, key):
             cipher = AES.new(pad_key(key.encode(), 32), AES.MODE_CBC, iv)
             decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
         elif algorithm == "DES":
-            cipher = DES.new(pad_key(key.encode(), 8), DES.MODE_CBC, iv)
+            cipher = DES.new(pad_key(key.encode(), 8), AES.MODE_CBC, iv)
             decrypted_data = unpad(cipher.decrypt(encrypted_data), DES.block_size)
         elif algorithm == "3DES":
-            cipher = DES3.new(pad_key(key.encode(), 24), DES3.MODE_CBC, iv)
+            cipher = DES3.new(pad_key(key.encode(), 24), AES.MODE_CBC, iv)
             decrypted_data = unpad(cipher.decrypt(encrypted_data), DES3.block_size)
         elif algorithm == "Blowfish":
             cipher = Blowfish.new(pad_key(key.encode(), 16), Blowfish.MODE_CBC, iv)
