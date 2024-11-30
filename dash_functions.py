@@ -49,21 +49,21 @@ def decrypt_file(file, algorithm, key):
     content = file.read()
 
     try:
-
         # Extract file type and IV length
-        file_type_end = content.find(b":")  # Find the first ':' to locate file_type
-        file_type = content[:file_type_end]  # Extract the file_type
-        iv_len = int.from_bytes(content[file_type_end + 1:file_type_end + 5], 'big')  # Read the IV length (4 bytes)
+        file_type_end = content.find(b":")
+        file_type = content[:file_type_end].decode()  # Decode file type to a string
+        iv_len = int.from_bytes(content[file_type_end + 1:file_type_end + 5], 'big')
         iv_start = file_type_end + 5
-        iv = content[iv_start:iv_start + iv_len]  # extract iv based on length
+        iv = content[iv_start:iv_start + iv_len]
         encrypted_data = content[iv_start + iv_len:]
 
-        #correct iv length
+        # Validate IV length
         if algorithm == "AES" and len(iv) != 16:
-            raise ValueError("Incorrect IV length for AES (must be 16 bytes)")
+            raise ValueError("Incorrect IV length for AES (must be 16 bytes).")
         elif algorithm in ["DES", "3DES", "Blowfish"] and len(iv) != 8:
-            raise ValueError("Incorrect IV length for DES/3DES/Blowfish (must be 8 bytes)")
+            raise ValueError("Incorrect IV length for DES/3DES/Blowfish (must be 8 bytes).")
 
+        # Decrypt the data
         if algorithm == "AES":
             cipher = AES.new(pad_key(key.encode(), 32), AES.MODE_CBC, iv)
             decrypted_data = unpad(cipher.decrypt(encrypted_data), AES.block_size)
@@ -79,13 +79,12 @@ def decrypt_file(file, algorithm, key):
         else:
             st.error(f"{algorithm} is not supported.")
             return None, None
-        st.success("File decrypted successfully!")
 
-        # output = BytesIO(decrypted_data)
-        # output.seek(0)
+        # Prepare decrypted file for download
+        decrypted_file = BytesIO(decrypted_data)
+        decrypted_file.seek(0)
+        return file_type, decrypted_file
 
-        # Provide a link to download the decrypted file
-        return file_type.decode(), decrypted_data
     except Exception as e:
         st.error(f"Decryption failed: {e}")
         return None, None

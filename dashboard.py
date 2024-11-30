@@ -84,10 +84,10 @@ if nav_option == "Home":
     if uploaded_file:
         st.success("File uploaded successfully!")
 
-        # display file preview
+        # Display file preview
         if file_type.lower() in ["jpg", "jpeg", "png"]:
             image = Image.open(uploaded_file)
-            st.image(image, caption="Uploaded Image", use_container_width=True) 
+            st.image(image, caption="Uploaded Image", use_container_width=True)
 
         elif file_type.lower() == "pdf":
             st.write("PDF file preview:")
@@ -96,7 +96,7 @@ if nav_option == "Home":
         elif file_type.lower() == "csv":
             df = pd.read_csv(uploaded_file)
             st.write("CSV file preview:")
-            st.dataframe(df.head())  
+            st.dataframe(df.head())
 
         else:
             st.write("File preview is not available for this type.")
@@ -129,7 +129,6 @@ if nav_option == "Home":
                 - Ensure the key matches the encryption algorithm's requirements.
                 """
             )
-            # Decrypt section only appears if user has uploaded an encrypted file (with .enc extension)
             uploaded_enc_file = fns.show_uploader(["enc"])  # Allow only .enc files
 
             if uploaded_enc_file:
@@ -137,12 +136,16 @@ if nav_option == "Home":
                 key = st.text_input("Enter decryption key (password):", type="password")
 
                 if key and st.button("Decrypt"):
-                    decrypted_file_type, decrypted_content = fns.decrypt_file(uploaded_enc_file, algorithm, key)
-                    if decrypted_content:
-                        #st.success("File decrypted successfully!")
-                        decrypted_file = BytesIO(decrypted_content)
-                        decrypted_file.name = f"decrypted_file.{decrypted_file_type.lower()}"
-                        st.download_button(f"Download Decrypted {decrypted_file_type} File", decrypted_file.getvalue(), decrypted_file.name)
+                    decrypted_file_type, decrypted_file = fns.decrypt_file(uploaded_enc_file, algorithm, key)
+                    if decrypted_file:
+                        st.success(f"File decrypted successfully as a {decrypted_file_type} file!")
+                        st.download_button(
+                            label=f"Download Decrypted {decrypted_file_type} File",
+                            data=decrypted_file,
+                            file_name=f"decrypted_file.{decrypted_file_type.lower()}",
+                            mime="application/octet-stream"
+                        )
+
 
 elif nav_option == "About":
     st.title("About CipherGuard")
@@ -155,10 +158,10 @@ elif nav_option == "About":
         - **Algorithms**: AES, DES, 3DES, Blowfish
         - **Ease of Use**: Simple upload and download interface.
 
-        ### How It Works:  
-        1. Upload your file.  
-        2. Choose an encryption algorithm and operation.  
-        3. Provide the key to encrypt or decrypt.  
+        ### How It Works:
+        1. Upload your file.
+        2. Choose an encryption algorithm and operation.
+        3. Provide the key to encrypt or decrypt.
         """
     )
 
