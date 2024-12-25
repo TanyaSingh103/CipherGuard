@@ -2,6 +2,7 @@
 
 A secure and interactive file encryption and decryption platform, developed using **Python** and the **Streamlit** framework, to ensure data confidentiality and integrity through advanced cryptographic algorithms.
 
+---
 ## Overview
 
 CipherGuard provides an easy-to-use interface for encrypting and decrypting various file types, including **CSV**, **DOC**, **PDF**, and **images**. With support for multiple encryption algorithms, it ensures flexible and secure file handling, protecting sensitive data with password-protected encryption keys.
