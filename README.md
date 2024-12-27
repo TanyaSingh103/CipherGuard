@@ -63,5 +63,12 @@ CipherGuard provides an easy-to-use interface for encrypting and decrypting vari
   
 ---
 
+## Screenshots
+
+![image](https://github.com/user-attachments/assets/53eb1849-3848-4331-9152-33c4f326a7ba)
+
+![image](https://github.com/user-attachments/assets/e0ea5065-3d95-41b2-868c-5c8623fdccec)
+
+
 Enjoy secure and reliable file encryption with CipherGuard!
 
